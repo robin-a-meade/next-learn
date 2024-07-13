@@ -11,10 +11,27 @@ import {
 import { Button } from '@/app/ui/button';
 import { createInvoice, State } from '@/app/lib/actions';
 import { useActionState } from 'react';
+import { useEffect } from 'react';
 
 export default function Form({ customers }: { customers: CustomerField[] }) {
   const initialState: State = { message: null, errors: {} };
   const [state, formAction] = useActionState(createInvoice, initialState);
+
+  // Workaround for bug that prevents setting of defaultValue
+  // on `select` controls after initial render.
+  // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
+  //   https://github.com/facebook/react/issues/24165
+  // )
+  // Remove this when that bug is resolved.
+  useEffect(() => {
+    const selectElement = document.getElementById(
+      'customer',
+    ) as HTMLSelectElement | null;
+    if (selectElement) {
+      selectElement.value = (state.payload?.get('customerId') as string) || '';
+    }
+  }, [state]);
+
   return (
     <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
@@ -23,7 +40,16 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
           <label htmlFor="customer" className="mb-2 block text-sm font-medium">
             Choose customer
           </label>
+
           <div className="relative">
+            {/* 
+            Setting defaultValue on `select` does not work after the first render.
+            We use the `useEffect` workaround until following bug is fixed:
+            See bug:
+            [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
+              https://github.com/facebook/react/issues/24165
+            )
+            */}
             <select
               id="customer"
               name="customerId"
