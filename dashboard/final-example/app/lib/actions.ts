@@ -31,6 +31,7 @@ export type State = {
     status?: string[];
   };
   message?: string | null;
+  payload?: FormData;
 };
 
 export async function createInvoice(prevState: State, formData: FormData) {
@@ -46,6 +47,7 @@ export async function createInvoice(prevState: State, formData: FormData) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'Missing Fields. Failed to Create Invoice.',
+      payload: formData,
     };
   }
 
