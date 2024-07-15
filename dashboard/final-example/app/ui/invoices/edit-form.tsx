@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { Button } from '@/app/ui/button';
 import { updateInvoice, State } from '@/app/lib/actions';
 import { useActionState } from 'react';
+import { useEffect } from 'react';
 
 export default function EditInvoiceForm({
   invoice,
@@ -20,8 +21,25 @@ export default function EditInvoiceForm({
   customers: CustomerField[];
 }) {
   const initialState: State = { message: null, errors: {} };
-  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id);
+  const updateInvoiceWithId = updateInvoice.bind(null, invoice?.id);
   const [state, formAction] = useActionState(updateInvoiceWithId, initialState);
+
+  // This `useEffect` is a workaround for bug that prevents setting of `defaultValue`
+  // on `select` controls after initial render.
+  // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
+  //   https://github.com/facebook/react/issues/24165
+  // )
+  // Remove this when that bug is fixed.
+  useEffect(() => {
+    const selectElement = document.getElementById(
+      'customer',
+    ) as HTMLSelectElement | null;
+    if (selectElement) {
+      selectElement.value = state.payload
+        ? (state.payload.get('customerId') as string)
+        : invoice.customer_id;
+    }
+  }, [state?.payload, invoice.customer_id]);
 
   return (
     <form action={formAction}>
@@ -36,7 +54,11 @@ export default function EditInvoiceForm({
               id="customer"
               name="customerId"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-              defaultValue={invoice.customer_id}
+              defaultValue={
+                state.payload
+                  ? (state.payload.get('customerId') as string)
+                  : invoice.customer_id
+              }
               aria-describedby="customer-error"
             >
               <option value="" disabled>
@@ -72,7 +94,11 @@ export default function EditInvoiceForm({
                 id="amount"
                 name="amount"
                 type="number"
-                defaultValue={invoice.amount}
+                defaultValue={
+                  state.payload
+                    ? (state.payload.get('amount') as string)
+                    : invoice.amount
+                }
                 step="0.01"
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
@@ -105,7 +131,11 @@ export default function EditInvoiceForm({
                   name="status"
                   type="radio"
                   value="pending"
-                  defaultChecked={invoice.status === 'pending'}
+                  defaultChecked={
+                    (state.payload
+                      ? (state.payload.get('status') as string)
+                      : invoice.status) === 'pending'
+                  }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
                 <label
@@ -121,7 +151,11 @@ export default function EditInvoiceForm({
                   name="status"
                   type="radio"
                   value="paid"
-                  defaultChecked={invoice.status === 'paid'}
+                  defaultChecked={
+                    (state.payload
+                      ? (state.payload.get('status') as string)
+                      : invoice.status) === 'paid'
+                  }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
                 <label
