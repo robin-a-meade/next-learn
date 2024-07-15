@@ -17,20 +17,22 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
   const initialState: State = { message: null, errors: {} };
   const [state, formAction] = useActionState(createInvoice, initialState);
 
-  // Workaround for bug that prevents setting of defaultValue
+  // This `useEffect` is a workaround for bug that prevents setting of `defaultValue`
   // on `select` controls after initial render.
   // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
   //   https://github.com/facebook/react/issues/24165
   // )
-  // Remove this when that bug is resolved.
+  // Remove this when that bug is fixed.
   useEffect(() => {
     const selectElement = document.getElementById(
       'customer',
     ) as HTMLSelectElement | null;
     if (selectElement) {
-      selectElement.value = (state.payload?.get('customerId') as string) || '';
+      selectElement.value = state.payload
+        ? (state.payload.get('customerId') as string)
+        : '';
     }
-  }, [state]);
+  }, [state?.payload]);
 
   return (
     <form action={formAction}>
@@ -55,7 +57,9 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
               name="customerId"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
               aria-describedby="customer-error"
-              defaultValue={(state.payload?.get('customerId') as string) || ''}
+              defaultValue={
+                state.payload ? (state.payload.get('customerId') as string) : ''
+              }
             >
               <option value="" disabled>
                 Select a customer
@@ -94,7 +98,9 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                 aria-describedby="amount-error"
-                defaultValue={state.payload?.get('amount') as string}
+                defaultValue={
+                  state.payload ? (state.payload.get('amount') as string) : ''
+                }
               />
               <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
