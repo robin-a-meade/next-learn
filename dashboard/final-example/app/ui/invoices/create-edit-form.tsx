@@ -50,10 +50,16 @@ export default function CreateEditInvoiceForm({
   // }, [state]);
 
   // Update 2025-02-11: A better way was found
-  // Better way is to set `key` in addition to `defaultValue`
+  // The better way is to set `key` in addition to `defaultValue`
   // Why it works is a mystery, though
   // [React 19] Controlled <select> component is subject to automatic form reset #30580
   // https://github.com/facebook/react/issues/30580
+
+  // We use this value twice: for defaultValue and key
+  // We therefore calculate it once up here to be DRY
+  const customerDefaultValue = (state.payload?.get('customerId') ??
+    invoice?.customer_id ??
+    '') as string;
 
   return (
     <form action={formAction}>
@@ -68,20 +74,8 @@ export default function CreateEditInvoiceForm({
               id="customer"
               name="customerId"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-              defaultValue={
-                state.payload
-                  ? (state.payload.get('customerId') as string)
-                  : invoice
-                  ? invoice.customer_id
-                  : ''
-              }
-              key={
-                state.payload
-                  ? (state.payload.get('customerId') as string)
-                  : invoice
-                  ? invoice.customer_id
-                  : ''
-              }
+              defaultValue={customerDefaultValue}
+              key={customerDefaultValue}
               aria-describedby="customer-error"
             >
               <option value="" disabled>
@@ -118,11 +112,9 @@ export default function CreateEditInvoiceForm({
                 name="amount"
                 type="number"
                 defaultValue={
-                  state.payload
-                    ? (state.payload.get('amount') as string)
-                    : invoice
-                    ? invoice.amount
-                    : ''
+                  (state.payload?.get('amount') ??
+                    invoice?.amount ??
+                    '') as string
                 }
                 step="0.01"
                 placeholder="Enter USD amount"
@@ -157,11 +149,8 @@ export default function CreateEditInvoiceForm({
                   type="radio"
                   value="pending"
                   defaultChecked={
-                    (state.payload
-                      ? (state.payload.get('status') as string)
-                      : invoice
-                      ? invoice.status
-                      : '') === 'pending'
+                    (state.payload?.get('status') ?? invoice?.status ?? '') ===
+                    'pending'
                   }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
@@ -179,11 +168,8 @@ export default function CreateEditInvoiceForm({
                   type="radio"
                   value="paid"
                   defaultChecked={
-                    (state.payload
-                      ? (state.payload.get('status') as string)
-                      : invoice
-                      ? invoice.status
-                      : '') === 'paid'
+                    (state.payload?.get('status') ?? invoice?.status ?? '') ===
+                    'paid'
                   }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
