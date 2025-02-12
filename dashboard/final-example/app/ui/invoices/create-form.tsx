@@ -17,22 +17,33 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
   const initialState: State = { message: null, errors: {} };
   const [state, formAction] = useActionState(createInvoice, initialState);
 
-  // This `useEffect` is a workaround for bug that prevents setting of `defaultValue`
-  // on `select` controls after initial render.
-  // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
-  //   https://github.com/facebook/react/issues/24165
-  // )
-  // Remove this when that bug is fixed.
-  useEffect(() => {
-    const selectElement = document.getElementById(
-      'customer',
-    ) as HTMLSelectElement | null;
-    if (selectElement) {
-      selectElement.value = state.payload
-        ? (state.payload.get('customerId') as string)
-        : '';
-    }
-  }, [state?.payload]);
+  // // This `useEffect` is a workaround for bug that prevents setting of `defaultValue`
+  // // on `select` controls after initial render.
+  // // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
+  // //   https://github.com/facebook/react/issues/24165
+  // // )
+  // // Remove this when that bug is fixed.
+  // useEffect(() => {
+  //   const selectElement = document.getElementById(
+  //     'customer',
+  //   ) as HTMLSelectElement | null;
+  //   if (selectElement) {
+  //     selectElement.value = state.payload
+  //       ? (state.payload.get('customerId') as string)
+  //       : '';
+  //   }
+  // }, [state?.payload]);
+
+  // Update 2025-02-11: A better way was found
+  // The better way is to set `key` in addition to `defaultValue`
+  // Why it works is a mystery, though
+  // [React 19] Controlled <select> component is subject to automatic form reset #30580
+  // https://github.com/facebook/react/issues/30580
+
+  // We use this value twice: for defaultValue and key
+  // We therefore calculate it once up here to be DRY
+  const customerDefaultValue = (state.payload?.get('customerId') ??
+    '') as string;
 
   return (
     <form action={formAction}>
@@ -57,9 +68,8 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
               name="customerId"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
               aria-describedby="customer-error"
-              defaultValue={
-                state.payload ? (state.payload.get('customerId') as string) : ''
-              }
+              defaultValue={customerDefaultValue}
+              key={customerDefaultValue}
             >
               <option value="" disabled>
                 Select a customer
@@ -98,9 +108,7 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
                 aria-describedby="amount-error"
-                defaultValue={
-                  state.payload ? (state.payload.get('amount') as string) : ''
-                }
+                defaultValue={(state.payload?.get('amount') ?? '') as string}
               />
               <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
@@ -130,9 +138,7 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                   type="radio"
                   value="pending"
                   className="text-white-600 h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 focus:ring-2"
-                  defaultChecked={
-                    (state.payload?.get('status') as string) === 'pending'
-                  }
+                  defaultChecked={state.payload?.get('status') === 'pending'}
                 />
                 <label
                   htmlFor="pending"
@@ -148,9 +154,7 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                   type="radio"
                   value="paid"
                   className="h-4 w-4 cursor-pointer border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
-                  defaultChecked={
-                    (state.payload?.get('status') as string) === 'paid'
-                  }
+                  defaultChecked={state.payload?.get('status') === 'paid'}
                 />
                 <label
                   htmlFor="paid"
