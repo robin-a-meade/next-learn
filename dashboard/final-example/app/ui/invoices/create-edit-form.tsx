@@ -30,24 +30,30 @@ export default function CreateEditInvoiceForm({
     initialState,
   );
 
-  // This `useEffect` is a workaround for bug that prevents setting of `defaultValue`
-  // on `select` controls after initial render.
-  // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
-  //   https://github.com/facebook/react/issues/24165
-  // )
-  // Remove this when that bug is fixed.
-  useEffect(() => {
-    const selectElement = document.getElementById(
-      'customer',
-    ) as HTMLSelectElement | null;
-    if (selectElement) {
-      selectElement.value = state.payload
-        ? (state.payload.get('customerId') as string)
-        : invoice
-          ? invoice.customer_id
-          : '';
-    }
-  }, [state]);
+  // // This `useEffect` is a workaround for bug that prevents setting of `defaultValue`
+  // // on `select` controls after initial render.
+  // // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
+  // //   https://github.com/facebook/react/issues/24165
+  // // )
+  // // Remove this when that bug is fixed.
+  // useEffect(() => {
+  //   const selectElement = document.getElementById(
+  //     'customer',
+  //   ) as HTMLSelectElement | null;
+  //   if (selectElement) {
+  //     selectElement.value = state.payload
+  //       ? (state.payload.get('customerId') as string)
+  //       : invoice
+  //         ? invoice.customer_id
+  //         : '';
+  //   }
+  // }, [state]);
+
+  // Update 2025-02-11: A better way was found
+  // Better way is to set `key` in addition to `defaultValue`
+  // Why it works is a mystery, though
+  // [React 19] Controlled <select> component is subject to automatic form reset #30580
+  // https://github.com/facebook/react/issues/30580
 
   return (
     <form action={formAction}>
@@ -66,8 +72,15 @@ export default function CreateEditInvoiceForm({
                 state.payload
                   ? (state.payload.get('customerId') as string)
                   : invoice
-                    ? invoice.customer_id
-                    : ''
+                  ? invoice.customer_id
+                  : ''
+              }
+              key={
+                state.payload
+                  ? (state.payload.get('customerId') as string)
+                  : invoice
+                  ? invoice.customer_id
+                  : ''
               }
               aria-describedby="customer-error"
             >
@@ -108,8 +121,8 @@ export default function CreateEditInvoiceForm({
                   state.payload
                     ? (state.payload.get('amount') as string)
                     : invoice
-                      ? invoice.amount
-                      : ''
+                    ? invoice.amount
+                    : ''
                 }
                 step="0.01"
                 placeholder="Enter USD amount"
@@ -147,8 +160,8 @@ export default function CreateEditInvoiceForm({
                     (state.payload
                       ? (state.payload.get('status') as string)
                       : invoice
-                        ? invoice.status
-                        : '') === 'pending'
+                      ? invoice.status
+                      : '') === 'pending'
                   }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
@@ -169,8 +182,8 @@ export default function CreateEditInvoiceForm({
                     (state.payload
                       ? (state.payload.get('status') as string)
                       : invoice
-                        ? invoice.status
-                        : '') === 'paid'
+                      ? invoice.status
+                      : '') === 'paid'
                   }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
