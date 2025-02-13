@@ -112,9 +112,9 @@ export default function CreateEditInvoiceForm({
                 name="amount"
                 type="number"
                 defaultValue={
-                  (state.payload?.get('amount') ??
-                    invoice?.amount ??
-                    '') as string
+                  (state.payload?.get('amount') as string) ??
+                  invoice?.amount ??
+                  ''
                 }
                 step="0.01"
                 placeholder="Enter USD amount"
