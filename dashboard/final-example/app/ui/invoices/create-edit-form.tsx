@@ -11,7 +11,6 @@ import Link from 'next/link';
 import { Button } from '@/app/ui/button';
 import { createOrUpdateInvoice, State } from '@/app/lib/actions';
 import { useActionState } from 'react';
-import { useEffect } from 'react';
 
 export default function CreateEditInvoiceForm({
   invoice,
@@ -30,36 +29,22 @@ export default function CreateEditInvoiceForm({
     initialState,
   );
 
-  // // This `useEffect` is a workaround for bug that prevents setting of `defaultValue`
-  // // on `select` controls after initial render.
-  // // [Bug: `defaultValue` is not consistent between `input` and `select` · Issue #24165 · facebook/react](
-  // //   https://github.com/facebook/react/issues/24165
-  // // )
-  // // Remove this when that bug is fixed.
-  // useEffect(() => {
-  //   const selectElement = document.getElementById(
-  //     'customer',
-  //   ) as HTMLSelectElement | null;
-  //   if (selectElement) {
-  //     selectElement.value = state.payload
-  //       ? (state.payload.get('customerId') as string)
-  //       : invoice
-  //         ? invoice.customer_id
-  //         : '';
-  //   }
-  // }, [state]);
-
-  // Update 2025-02-11: A better way was found
-  // The better way is to set `key` in addition to `defaultValue`
-  // Why it works is a mystery, though
+  // Update 2025-02-11: Set `key` attribute in addition to `defaultValue` attribute
+  // See:
   // [React 19] Controlled <select> component is subject to automatic form reset #30580
   // https://github.com/facebook/react/issues/30580
 
+  // customerDefaultValue
   // We use this value twice: for defaultValue and key
-  // We therefore calculate it once up here to be DRY
-  const customerDefaultValue = (state.payload?.get('customerId') ??
+  // The calculation is non-trival, so calculate it once up here
+
+  // Note: We want the fallback value for the `select` to be empty string, "", not `undefined`
+  // We follow the common convention that the initial value of a `select` corresponds
+  // to a disabled option whose option value is empty string, "".
+  const customerDefaultValue =
+    (state.payload?.get('customerId') as string | null | undefined) ??
     invoice?.customer_id ??
-    '') as string;
+    '';
 
   return (
     <form action={formAction}>
@@ -112,9 +97,8 @@ export default function CreateEditInvoiceForm({
                 name="amount"
                 type="number"
                 defaultValue={
-                  (state.payload?.get('amount') ??
-                    invoice?.amount ??
-                    '') as string
+                  (state.payload?.get('amount') as string | null | undefined) ??
+                  invoice?.amount
                 }
                 step="0.01"
                 placeholder="Enter USD amount"
@@ -149,7 +133,7 @@ export default function CreateEditInvoiceForm({
                   type="radio"
                   value="pending"
                   defaultChecked={
-                    (state.payload?.get('status') ?? invoice?.status ?? '') ===
+                    (state.payload?.get('status') ?? invoice?.status) ===
                     'pending'
                   }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
@@ -168,8 +152,7 @@ export default function CreateEditInvoiceForm({
                   type="radio"
                   value="paid"
                   defaultChecked={
-                    (state.payload?.get('status') ?? invoice?.status ?? '') ===
-                    'paid'
+                    (state.payload?.get('status') ?? invoice?.status) === 'paid'
                   }
                   className="h-4 w-4 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2"
                 />
